@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Railway MAPF — Algorithm Visualization</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg:        #050a0e;
+    --grid:      #0d1f2d;
+    --rail:      #1a3a52;
+    --rail-hi:   #2a6a8a;
+    --green:     #00ff9d;
+    --amber:     #ffb800;
+    --red:       #ff3c5a;
+    --blue:      #00c8ff;
+    --purple:    #b06aff;
+    --dim:       #1e3545;
+    --text:      #a8d8ea;
+    --text-dim:  #3a6a82;
+    --panel:     #07151f;
+    --border:    #0f2d42;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  header {
+    width: 100%;
+    padding: 28px 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sys-line {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(18px, 3vw, 30px);
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(0,255,157,0.4);
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Mode selector */
+  .modes {
+    display: flex;
+    gap: 2px;
+    margin: 24px 0 0;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 4px;
+    border-radius: 3px;
+  }
+
+  .mode-btn {
+    background: none;
+    border: none;
+    padding: 8px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .mode-btn.active {
+    background: rgba(0,255,157,0.08);
+    color: var(--green);
+    border: 1px solid rgba(0,255,157,0.3);
+  }
+
+  .mode-btn:hover:not(.active) {
+    color: var(--text);
+    background: rgba(255,255,255,0.03);
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 16px;
+    width: 100%;
+    max-width: 1100px;
+    padding: 20px 24px 40px;
+  }
+
+  /* Canvas area */
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .canvas-wrap::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 10px; left: 12px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    z-index: 5;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 0.75;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .panel {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+
+  .panel-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Algorithm info */
+  .algo-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  .algo-desc {
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text);
+    opacity: 0.8;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .tag.green  { background: rgba(0,255,157,0.08); color: var(--green);  border: 1px solid rgba(0,255,157,0.2); }
+  .tag.amber  { background: rgba(255,184,0,0.08);  color: var(--amber);  border: 1px solid rgba(255,184,0,0.2); }
+  .tag.blue   { background: rgba(0,200,255,0.08);  color: var(--blue);   border: 1px solid rgba(0,200,255,0.2); }
+  .tag.purple { background: rgba(176,106,255,0.08);color: var(--purple); border: 1px solid rgba(176,106,255,0.2); }
+
+  /* Stats */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(15,45,66,0.6);
+    font-size: 11px;
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .stat-label { color: var(--text-dim); }
+
+  .stat-val {
+    color: var(--green);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+  }
+
+  .stat-val.amber  { color: var(--amber); }
+  .stat-val.blue   { color: var(--blue);  }
+
+  /* Legend */
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 11px;
+    color: var(--text);
+    opacity: 0.85;
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .line-swatch {
+    width: 20px; height: 3px;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-btn {
+    flex: 1;
+    padding: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(0,255,157,0.05);
+    border: 1px solid rgba(0,255,157,0.2);
+    color: var(--green);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .ctrl-btn:hover {
+    background: rgba(0,255,157,0.12);
+    border-color: rgba(0,255,157,0.5);
+  }
+
+  .ctrl-btn:active { transform: scale(0.97); }
+
+  /* Speed slider */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    border-radius: 2px;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--green);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* Conflict flash overlay */
+  #conflict-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 60, 90, 0);
+    pointer-events: none;
+    transition: background 0.1s;
+    z-index: 4;
+  }
+
+  #conflict-flash.flash {
+    background: rgba(255, 60, 90, 0.08);
+  }
+
+  /* Bottom bar */
+  .statusbar {
+    width: 100%;
+    padding: 8px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 24px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .status-green { color: var(--green); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="sys-line">// system: mapf-vis v1.0 — railway coordination engine</div>
+  <h1>RAILWAY MAPF</h1>
+  <div class="subtitle">Multi-Agent Path Finding — Algorithm Visualizer</div>
+
+  <div class="modes">
+    <button class="mode-btn active" onclick="setMode(0)">01 — Single Agent</button>
+    <button class="mode-btn" onclick="setMode(1)">02 — Conflict Aware</button>
+    <button class="mode-btn" onclick="setMode(2)">03 — Multi-Agent</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="canvas-wrap" data-label="// rail grid simulation">
+    <div id="conflict-flash"></div>
+    <canvas id="c"></canvas>
+  </div>
+
+  <div class="sidebar">
+    <!-- Algorithm info -->
+    <div class="panel">
+      <div class="panel-title">// active algorithm</div>
+      <div class="algo-name" id="algo-name">Greedy Best-First</div>
+      <div class="algo-desc" id="algo-desc">
+        Navigates a single agent using Manhattan distance heuristic. At each step picks the transition that minimises distance to goal.
+      </div>
+      <div class="tag-row" id="algo-tags">
+        <span class="tag green">heuristic</span>
+        <span class="tag amber">O(n)</span>
+        <span class="tag blue">single agent</span>
+      </div>
+    </div>
+
+    <!-- Live stats -->
+    <div class="panel">
+      <div class="panel-title">// live stats</div>
+      <div class="stat-row">
+        <span class="stat-label">agents</span>
+        <span class="stat-val" id="stat-agents">1</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">timestep</span>
+        <span class="stat-val amber" id="stat-t">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">conflicts avoided</span>
+        <span class="stat-val blue" id="stat-conflicts">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">arrived</span>
+        <span class="stat-val" id="stat-arrived">0 / 1</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="panel">
+      <div class="panel-title">// legend</div>
+      <div class="legend-row"><div class="dot" style="background:#00ff9d"></div> Agent / path</div>
+      <div class="legend-row"><div class="dot" style="background:#ffb800"></div> Goal</div>
+      <div class="legend-row"><div class="dot" style="background:#00c8ff"></div> Agent 2</div>
+      <div class="legend-row"><div class="dot" style="background:#b06aff"></div> Agent 3+</div>
+      <div class="legend-row"><div class="dot" style="background:#ff3c5a"></div> Conflict resolved</div>
+      <div class="legend-row"><div class="line-swatch" style="background:#1a3a52"></div> Rail track</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="panel">
+      <div class="panel-title">// controls</div>
+      <div class="controls" style="margin-bottom:10px">
+        <button class="ctrl-btn" onclick="resetSim()">↺ Reset</button>
+        <button class="ctrl-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+      </div>
+      <div class="slider-row">
+        <span>speed</span>
+        <input type="range" min="1" max="10" value="5" oninput="setSpeed(this.value)">
+        <span id="speed-label">5x</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <span>status: <span class="status-green">● running</span></span>
+  <span>renderer: canvas 2d</span>
+  <span>env: flatland railway</span>
+  <span>github.com/sai/railway-mapf</span>
+</div>
+
+<script>
+// ─── Canvas setup ───────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W = 0, H = 0, CELL = 0;
+const COLS = 16, ROWS = 12;
+
+function resize() {
+  const wrap = canvas.parentElement;
+  W = wrap.clientWidth;
+  H = Math.round(W * 0.75);
+  canvas.width = W;
+  canvas.height = H;
+  CELL = Math.min(W / COLS, H / ROWS);
+}
+
+window.addEventListener('resize', () => { resize(); drawFrame(); });
+resize();
+
+// ─── Colours ────────────────────────────────────────────────────────────────
+const C = {
+  bg:     '#050a0e',
+  grid:   '#0a1c2a',
+  rail:   '#0d2a3d',
+  railHi: '#1e5070',
+  green:  '#00ff9d',
+  amber:  '#ffb800',
+  red:    '#ff3c5a',
+  blue:   '#00c8ff',
+  purple: '#b06aff',
+  dim:    '#1e3545',
+  text:   '#a8d8ea',
+};
+
+const AGENT_COLORS = [C.green, C.blue, C.purple, C.amber];
+
+// ─── Grid helpers ────────────────────────────────────────────────────────────
+function cx(col) { return (col + 0.5) * CELL + (W - COLS * CELL) / 2; }
+function cy(row) { return (row + 0.5) * CELL + (H - ROWS * CELL) / 2; }
+
+// ─── Mode definitions ────────────────────────────────────────────────────────
+const MODES = [
+  {
+    name: 'Greedy Best-First',
+    desc: 'Navigates a single agent using Manhattan distance heuristic. At each step picks the transition that minimises distance to goal.',
+    tags: [['green','heuristic'],['amber','O(n)'],['blue','single agent']],
+    agents: 1, label: '01',
+  },
+  {
+    name: 'Time-Space A★',
+    desc: 'A* extended into the time dimension. Pre-builds conflict tables from existing paths; avoids vertex and edge (swap) conflicts.',
+    tags: [['green','A*'],['amber','time-space'],['blue','conflict-aware'],['purple','optimal']],
+    agents: 2, label: '02',
+  },
+  {
+    name: 'Prioritised Planning',
+    desc: 'Plans agents sequentially in priority order (tightest deadline first). Each agent treats prior paths as hard constraints. Dynamic replanning on malfunction.',
+    tags: [['green','multi-agent'],['amber','prioritised'],['purple','replanning'],['blue','deadline-aware']],
+    agents: 4, label: '03',
+  },
+];
+
+// ─── Rail network ────────────────────────────────────────────────────────────
+// Horizontal and vertical segments [c1,r1,c2,r2]
+const RAILS_H = [
+  [1,2,14,2],[1,5,14,5],[1,9,14,9],
+  [1,2,1,5],[1,5,1,9],
+  [4,2,4,5],[4,5,4,9],
+  [8,2,8,9],
+  [11,2,11,5],[11,5,11,9],
+  [14,2,14,5],[14,5,14,9],
+];
+
+// Build adjacency from rails
+function buildRailSet() {
+  const set = new Set();
+  const adj = {};
+
+  function addEdge(r1,c1,r2,c2) {
+    const k1 = `${r1},${c1}`, k2 = `${r2},${c2}`;
+    set.add(k1); set.add(k2);
+    if (!adj[k1]) adj[k1] = [];
+    if (!adj[k2]) adj[k2] = [];
+    if (!adj[k1].includes(k2)) adj[k1].push(k2);
+    if (!adj[k2].includes(k1)) adj[k2].push(k1);
+  }
+
+  const segs = [
+    // horizontals
+    [[2,1],[2,4]],[[2,4],[2,8]],[[2,8],[2,11]],[[2,11],[2,14]],
+    [[5,1],[5,4]],[[5,4],[5,8]],[[5,8],[5,11]],[[5,11],[5,14]],
+    [[9,1],[9,4]],[[9,4],[9,8]],[[9,8],[9,11]],[[9,11],[9,14]],
+    // verticals
+    [[2,1],[5,1]],[[5,1],[9,1]],
+    [[2,4],[5,4]],[[5,4],[9,4]],
+    [[2,8],[5,8]],[[5,8],[9,8]],
+    [[2,11],[5,11]],[[5,11],[9,11]],
+    [[2,14],[5,14]],[[5,14],[9,14]],
+    // cross connections
+    [[2,1],[2,14]],
+  ];
+
+  // simpler: just define the graph nodes and edges directly
+  const nodes = [
+    [2,1],[2,4],[2,8],[2,11],[2,14],
+    [5,1],[5,4],[5,8],[5,11],[5,14],
+    [9,1],[9,4],[9,8],[9,11],[9,14],
+  ];
+
+  // horizontal connections
+  [[0,1],[1,2],[2,3],[3,4],
+   [5,6],[6,7],[7,8],[8,9],
+   [10,11],[11,12],[12,13],[13,14]].forEach(([a,b]) => {
+    const [r1,c1] = nodes[a], [r2,c2] = nodes[b];
+    addEdge(r1,c1,r2,c2);
+  });
+
+  // vertical connections
+  [[0,5],[5,10],[1,6],[6,11],[2,7],[7,12],[3,8],[8,13],[4,9],[9,14]].forEach(([a,b]) => {
+    const [r1,c1] = nodes[a], [r2,c2] = nodes[b];
+    addEdge(r1,c1,r2,c2);
+  });
+
+  return { nodes, adj, set };
+}
+
+const RAIL = buildRailSet();
+const NODES = RAIL.nodes;
+
+// ─── BFS pathfinder ──────────────────────────────────────────────────────────
+function bfs(startIdx, goalIdx, blockedEdges = new Set()) {
+  const q = [[startIdx, [startIdx]]];
+  const vis = new Set([startIdx]);
+  while (q.length) {
+    const [cur, path] = q.shift();
+    if (cur === goalIdx) return path;
+    const [r,c] = NODES[cur];
+    const nbrs = RAIL.adj[`${r},${c}`] || [];
+    for (const nk of nbrs) {
+      const [nr,nc] = nk.split(',').map(Number);
+      const ni = NODES.findIndex(([a,b]) => a===nr && b===nc);
+      if (ni === -1 || vis.has(ni)) continue;
+      const edgeKey = `${Math.min(cur,ni)}-${Math.max(cur,ni)}`;
+      if (blockedEdges.has(edgeKey)) continue;
+      vis.add(ni);
+      q.push([ni, [...path, ni]]);
+    }
+  }
+  return null;
+}
+
+// ─── Simulation state ─────────────────────────────────────────────────────────
+let mode = 0;
+let agents = [];
+let tick = 0;
+let paused = false;
+let speed = 5;
+let conflictsAvoided = 0;
+let arrived = 0;
+let animFrame = 0;
+let lastTime = 0;
+let msPerTick = 200;
+
+// Pre-defined scenarios for each mode
+const SCENARIOS = [
+  // Mode 0: single agent
+  () => [{
+    pathIdxs: bfs(0, 14) || [0],
+    color: C.green,
+    t: 0, progress: 0,
+  }],
+
+  // Mode 1: two agents, one waits for the other
+  () => {
+    const p1 = bfs(0, 14);
+    const p2 = bfs(14, 0);
+    return [
+      { pathIdxs: p1 || [0],  color: C.green, t: 0, progress: 0 },
+      { pathIdxs: p2 || [14], color: C.blue,  t: 0, progress: 0, delay: 3 },
+    ];
+  },
+
+  // Mode 2: 4 agents
+  () => {
+    const paths = [
+      bfs(0, 14),
+      bfs(14, 0),
+      bfs(10, 4),
+      bfs(4, 10),
+    ];
+    const colors = [C.green, C.blue, C.purple, C.amber];
+    const delays = [0, 2, 1, 3];
+    return paths.map((p,i) => ({
+      pathIdxs: p || [i*3],
+      color: colors[i],
+      t: 0,
+      progress: 0,
+      delay: delays[i],
+    }));
+  },
+];
+
+function buildAgents() {
+  const scene = SCENARIOS[mode]();
+  return scene.map(a => ({
+    ...a,
+    t: 0,
+    progress: 0,
+    done: false,
+    waitTicks: 0,
+    conflictFlash: 0,
+  }));
+}
+
+function resetSim() {
+  agents = buildAgents();
+  tick = 0;
+  conflictsAvoided = 0;
+  arrived = 0;
+  updateStats();
+}
+
+// ─── Conflict detection ──────────────────────────────────────────────────────
+function checkConflicts() {
+  let hit = false;
+  for (let i = 0; i < agents.length; i++) {
+    for (let j = i+1; j < agents.length; j++) {
+      const ai = agents[i], aj = agents[j];
+      if (ai.done || aj.done) continue;
+      const pi = ai.pathIdxs[Math.min(ai.t, ai.pathIdxs.length-1)];
+      const pj = aj.pathIdxs[Math.min(aj.t, aj.pathIdxs.length-1)];
+      if (pi === pj) { hit = true; conflictsAvoided++; }
+    }
+  }
+  if (hit) {
+    const flash = document.getElementById('conflict-flash');
+    flash.classList.add('flash');
+    setTimeout(() => flash.classList.remove('flash'), 200);
+  }
+}
+
+// ─── Update simulation ───────────────────────────────────────────────────────
+function updateSim() {
+  tick++;
+  arrived = 0;
+  agents.forEach(a => {
+    if (a.done) { arrived++; return; }
+    if (a.delay && tick <= a.delay) return; // initial delay
+    a.t = Math.min(a.t + 1, a.pathIdxs.length - 1);
+    if (a.t >= a.pathIdxs.length - 1) { a.done = true; arrived++; }
+    a.progress = a.t / Math.max(a.pathIdxs.length - 1, 1);
+  });
+
+  if (mode >= 1) checkConflicts();
+
+  // Loop after all done
+  if (arrived >= agents.length) {
+    setTimeout(() => {
+      resetSim();
+    }, 1200);
+  }
+
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stat-agents').textContent = agents.length;
+  document.getElementById('stat-t').textContent = tick;
+  document.getElementById('stat-conflicts').textContent = conflictsAvoided;
+  document.getElementById('stat-arrived').textContent = `${arrived} / ${agents.length}`;
+}
+
+// ─── Drawing ─────────────────────────────────────────────────────────────────
+function drawRails() {
+  // Grid dots
+  ctx.fillStyle = C.dim;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      ctx.beginPath();
+      ctx.arc(cx(c), cy(r), 0.8, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // Rail segments
+  ctx.strokeStyle = C.rail;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
+  const adj = RAIL.adj;
+  const drawn = new Set();
+  NODES.forEach(([r,c], idx) => {
+    const key = `${r},${c}`;
+    (adj[key] || []).forEach(nk => {
+      const [nr,nc] = nk.split(',').map(Number);
+      const ni = NODES.findIndex(([a,b]) => a===nr&&b===nc);
+      const ek = `${Math.min(idx,ni)}-${Math.max(idx,ni)}`;
+      if (drawn.has(ek)) return;
+      drawn.add(ek);
+      ctx.beginPath();
+      ctx.moveTo(cx(c), cy(r));
+      ctx.lineTo(cx(nc), cy(nr));
+      ctx.stroke();
+    });
+  });
+
+  // Rail highlight (sleepers effect)
+  ctx.strokeStyle = C.railHi;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,6]);
+  NODES.forEach(([r,c], idx) => {
+    const key = `${r},${c}`;
+    (adj[key] || []).forEach(nk => {
+      const [nr,nc] = nk.split(',').map(Number);
+      const ni = NODES.findIndex(([a,b]) => a===nr&&b===nc);
+      const ek = `${Math.min(idx,ni)}-${Math.max(idx,ni)}`;
+      if (!drawn.has(ek+'-hi')) {
+        drawn.add(ek+'-hi');
+        ctx.beginPath();
+        ctx.moveTo(cx(c), cy(r));
+        ctx.lineTo(cx(nc), cy(nr));
+        ctx.stroke();
+      }
+    });
+  });
+  ctx.setLineDash([]);
+
+  // Nodes
+  NODES.forEach(([r,c]) => {
+    ctx.beginPath();
+    ctx.arc(cx(c), cy(r), 4, 0, Math.PI*2);
+    ctx.fillStyle = '#0d2a3d';
+    ctx.fill();
+    ctx.strokeStyle = C.railHi;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+}
+
+function lerpNode(a, b, t) {
+  const [r1,c1] = NODES[a], [r2,c2] = NODES[b];
+  return [r1 + (r2-r1)*t, c1 + (c2-c1)*t];
+}
+
+function drawPath(agent) {
+  const path = agent.pathIdxs;
+  if (path.length < 2) return;
+
+  ctx.strokeStyle = agent.color + '30';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4,6]);
+  ctx.beginPath();
+  const [r0,c0] = NODES[path[0]];
+  ctx.moveTo(cx(c0), cy(r0));
+  for (let i = 1; i < path.length; i++) {
+    const [ri,ci] = NODES[path[i]];
+    ctx.lineTo(cx(ci), cy(ri));
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Travelled portion glow
+  const tEnd = Math.min(agent.t, path.length-1);
+  if (tEnd < 1) return;
+  ctx.strokeStyle = agent.color + '80';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  const [rS,cS] = NODES[path[0]];
+  ctx.moveTo(cx(cS), cy(rS));
+  for (let i = 1; i <= tEnd; i++) {
+    const [ri,ci] = NODES[path[i]];
+    ctx.lineTo(cx(ci), cy(ri));
+  }
+  ctx.stroke();
+}
+
+function drawAgent(agent, subProgress) {
+  const path = agent.pathIdxs;
+  const t = agent.t;
+
+  let row, col;
+  if (t >= path.length - 1) {
+    [row,col] = NODES[path[path.length-1]];
+  } else {
+    // Interpolate between t and t+1
+    const [r1,c1] = NODES[path[t]];
+    const [r2,c2] = NODES[path[t+1]];
+    row = r1 + (r2-r1)*subProgress;
+    col = c1 + (c2-c1)*subProgress;
+  }
+
+  const x = cx(col), y = cy(row);
+  const r = CELL * 0.28;
+
+  // Glow
+  const grd = ctx.createRadialGradient(x,y,0, x,y,r*3);
+  grd.addColorStop(0, agent.color+'60');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(x, y, r*3, 0, Math.PI*2);
+  ctx.fill();
+
+  // Body
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fillStyle = agent.done ? agent.color+'99' : agent.color;
+  ctx.fill();
+
+  // Inner dot
+  ctx.beginPath();
+  ctx.arc(x, y, r*0.35, 0, Math.PI*2);
+  ctx.fillStyle = '#050a0e';
+  ctx.fill();
+}
+
+function drawGoals() {
+  agents.forEach(a => {
+    const goal = a.pathIdxs[a.pathIdxs.length-1];
+    const [r,c] = NODES[goal];
+    const x = cx(c), y = cy(r);
+
+    // Pulsing ring
+    const pulse = 0.5 + 0.5*Math.sin(Date.now()/400);
+    ctx.strokeStyle = a.done ? a.color+'40' : a.color+'90';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, CELL*0.22 + pulse*4, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Diamond marker
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI/4);
+    ctx.strokeStyle = a.color;
+    ctx.lineWidth = 1.5;
+    const s = CELL * 0.14;
+    ctx.strokeRect(-s, -s, s*2, s*2);
+    ctx.restore();
+  });
+}
+
+function drawFrame(subProgress=0) {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Subtle grid
+  ctx.strokeStyle = C.grid;
+  ctx.lineWidth = 0.5;
+  for (let c=0; c<=COLS; c++) {
+    ctx.beginPath(); ctx.moveTo(cx(c-0.5),0); ctx.lineTo(cx(c-0.5),H); ctx.stroke();
+  }
+  for (let r=0; r<=ROWS; r++) {
+    ctx.beginPath(); ctx.moveTo(0,cy(r-0.5)); ctx.lineTo(W,cy(r-0.5)); ctx.stroke();
+  }
+
+  drawRails();
+  drawGoals();
+  agents.forEach(a => drawPath(a));
+  agents.forEach(a => drawAgent(a, subProgress));
+}
+
+// ─── Animation loop ───────────────────────────────────────────────────────────
+let subProgress = 0;
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  if (paused) { drawFrame(subProgress); return; }
+
+  const dt = ts - lastTime;
+  lastTime = ts;
+
+  subProgress += dt / msPerTick;
+  if (subProgress >= 1) {
+    subProgress = 0;
+    updateSim();
+  }
+
+  drawFrame(subProgress);
+}
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', i===m));
+  const info = MODES[m];
+  document.getElementById('algo-name').textContent = info.name;
+  document.getElementById('algo-desc').textContent = info.desc;
+  const tagEl = document.getElementById('algo-tags');
+  tagEl.innerHTML = info.tags.map(([cls,txt]) => `<span class="tag ${cls}">${txt}</span>`).join('');
+  resetSim();
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? '▶ Resume' : '⏸ Pause';
+}
+
+function setSpeed(v) {
+  speed = parseInt(v);
+  msPerTick = 1000 / (speed * 2.5);
+  document.getElementById('speed-label').textContent = speed + 'x';
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+resetSim();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
