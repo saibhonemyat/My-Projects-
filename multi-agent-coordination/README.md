@@ -142,4 +142,4 @@ Some things I tried and dropped:
 ## Acknowledgements
 
 Originally developed for FIT5226 Multi-Agent Systems at Monash University. The task specification (5×5 grid, 4 agents, head-on collision rules) comes from the unit's individual assignment brief.
-Note - Restructured from FIT5226 due to university academic policy, same functionality.
+Note - Restructured git style project from FIT5226 one ipynb file due to university academic policy, but same functionality.
