@@ -1,4 +1,4 @@
-# Multi-Agent Coordination via Deep Q-Learning
+# 📦 Multi-Agent Coordination via Deep Q-Learning
 
 Four reinforcement-learning agents that shuttle indefinitely between two cells on a 5×5 grid while learning to avoid each other.
 
