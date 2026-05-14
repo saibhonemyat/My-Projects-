@@ -1,4 +1,4 @@
-#🚆 Railway Multi-Agent Path Finding (MAPF)
+# 🚆 Railway Multi-Agent Path Finding (MAPF)
 
 > Conflict-free path planning for trains on dynamic railway networks, built on the [Flatland](https://flatland.aicrowd.com) simulation environment.
 
