@@ -112,7 +112,11 @@ python setup.py install
 ```
 
 ---
-
+## Before running
+```bash
+conda create flatland-rl
+conda activate flatland-rl
+```
 ## Running
 
 Each planner can be run standalone against its test suite:
