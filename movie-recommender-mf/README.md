@@ -300,4 +300,4 @@ BSc (Hons) Computing · Edinburgh Napier University · 2022
 
 ---
 
-*Built entirely from scratch — no high-level recommendation libraries used.*
+*Not Allowed to Reuse for any purpose*
