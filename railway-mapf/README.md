@@ -3,7 +3,7 @@
 > Conflict-free path planning for trains on dynamic railway networks, built on the [Flatland](https://flatland.aicrowd.com) simulation environment.
 
 ---
-
+![MAPF Demo](demo.gif)
 ## Overview
 
 This project implements a suite of progressively complex path-finding algorithms for autonomous train agents navigating shared railway grids. The core challenge is coordinating multiple agents that share track — avoiding head-on collisions, swap conflicts, and cascading failures from unexpected malfunctions — all within strict time budgets.
@@ -113,6 +113,7 @@ python setup.py install
 
 ---
 ## Before running
+To enable flatland
 ```bash
 conda create flatland-rl
 conda activate flatland-rl
