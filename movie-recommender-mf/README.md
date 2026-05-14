@@ -258,8 +258,7 @@ movie-recommender-mf/
 │       ├── movies-cleaned.dat
 │       └── users-cleaned.dat
 │
-├── Another.ipynb       # Main notebook (data loading, training, evaluation, recommendation)
-├── utilities.py        # Helper functions
+├── movie_recommender_mf.ipynb       # Main notebook (data loading, training, evaluation, recommendation)       
 └── README.md
 ```
 
