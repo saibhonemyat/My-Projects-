@@ -138,10 +138,8 @@ Some things I tried and dropped:
 - The opposite-direction sensor uses only the 4-cell cardinal horizon. A wider sensor (8-neighbour, or radius 2) might cut residual eval collisions further.
 - Six hand-tuned reward coefficients. Chosen by experiment; could be optimised further with hyperparameter search.
 
-## License
-
-MIT — see [LICENSE](LICENSE).
 
 ## Acknowledgements
 
 Originally developed for FIT5226 Multi-Agent Systems at Monash University. The task specification (5×5 grid, 4 agents, head-on collision rules) comes from the unit's individual assignment brief.
+Note - Restructured from FIT5226 due to university academic policy, same functionality.
