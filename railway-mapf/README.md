@@ -8,7 +8,7 @@
 
 This project implements a suite of progressively complex path-finding algorithms for autonomous train agents navigating shared railway grids. The core challenge is coordinating multiple agents that share track — avoiding head-on collisions, swap conflicts, and cascading failures from unexpected malfunctions — all within strict time budgets.
 
-**[▶ Live Demo](https://sai.github.io/railway-mapf/demo.html)** — interactive algorithm visualizer (switch between all 3 planners)
+
 
 Three planners are implemented, each building on the last:
 
