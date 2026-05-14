@@ -1,6 +1,5 @@
 # assets/
 
-Place your screenshot images here after running the notebook:
 
 - `loss_curve.png`   — screenshot of the training vs validation loss graph
 - `eval_result.png`  — screenshot of the MSE/RMSE/MAE bar chart
