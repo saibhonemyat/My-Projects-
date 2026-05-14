@@ -2,7 +2,7 @@
 
 Four reinforcement-learning agents that shuttle indefinitely between two cells on a 5×5 grid while learning to avoid each other.
 
-![tests](https://github.com/saibhonemyat/My-Projects/multi-agent-coordination/workflows/tests/badge.svg)
+![tests](https://github.com/saibhonemyat/My-Projects/main/multi-agent-coordination/workflows/tests/badge.svg)
 
 <p align="center">
   <img src="assets/rollout.gif" width="500" alt="Trained agents coordinating on a 5x5 grid"/>
