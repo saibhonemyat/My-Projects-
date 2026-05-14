@@ -1,0 +1,77 @@
+# Default training configuration for the multi-agent shuttle task.
+#
+# All hyperparameters live here so source files stay clean.  Override any
+# value at the CLI with --override key=value (see src/train.py).
+
+env:
+  grid: 5                # required by task spec
+  n_agents: 4            # required by task spec
+  collision_penalty: -10.0   # base value; phases override this
+  step_penalty: -0.05
+  progress_coef: 0.5
+  pickup_reward: 5.0
+  delivery_reward: 10.0
+  near_opposite_penalty: -0.2
+  oscillation_penalty: -0.3
+
+agent:
+  hidden_dim: 128
+  lr: 0.0005
+  gamma: 0.95
+  buffer_size: 80000
+  batch_size: 64
+  target_update_every: 1000
+  train_every: 4
+  learn_after: 2000
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay_steps: 150000
+
+training:
+  total_step_cap: 1500000
+  collision_cap: 4000
+  walltime_cap: 600
+  layout_reset_every: 200
+  mini_eval_every: 20000
+  early_stop_rate: 0.93
+  seed: 0
+
+options:
+  central_clock: true
+  opposite_sensor: true
+  staged_training: true
+
+# Curriculum phases used when options.staged_training is true.
+# Phase params override the corresponding entries in env: above for that phase only.
+phases:
+  - name: phase1-nav-1agent
+    n_agents: 1
+    budget: 100000
+    collision_penalty: -5.0
+    near_opposite_penalty: 0.0
+    progress_coef: 0.6
+    eps_target: 0.10
+    eps_decay_steps: 60000
+
+  - name: phase1b-nav-2agent
+    n_agents: 2
+    budget: 40000
+    collision_penalty: -10.0
+    near_opposite_penalty: -0.2
+    progress_coef: 0.5
+    eps_target: 0.05
+    eps_decay_steps: 30000
+
+  - name: phase2-coord-4agent
+    n_agents: 4
+    budget: 200000
+    collision_penalty: -15.0
+    near_opposite_penalty: -0.3
+    progress_coef: 0.4
+    eps_target: 0.02
+    eps_decay_steps: 100000
+
+evaluation:
+  trials: 500
+  max_steps_min: 25      # spec minimum-grade horizon
+  max_steps_perf: 20     # spec performance-point horizon
