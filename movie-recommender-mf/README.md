@@ -240,7 +240,7 @@ pip install numpy pandas matplotlib seaborn scikit-learn
 ### Run
 
 ```bash
-jupyter notebook Another.ipynb
+jupyter notebook matrixfactorization.ipynb
 ```
 
 Run cells in order. When prompted, enter a User ID (1–6040) and the number of top recommendations you want.
