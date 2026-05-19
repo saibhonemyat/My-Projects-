@@ -2,7 +2,7 @@
 
 > Competitive multi-agent AI for the Berkeley Pacman Capture the Flag framework, built for FIT5222 Planning and Automated Reasoning at Monash University.
 
-![demo](docs/demo.gif)
+![demo](pac_demo.gif)
 
 ---
 
