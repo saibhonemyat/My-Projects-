@@ -9,7 +9,7 @@ I'm a Computing Science graduate finishing my Master of Artificial Intelligence 
 | Project | Description | Key Result |
 |---|---|---|
 | [Multi-Agent Coordination](./multi-agent-coordination) | Four agents learn to coordinate on a 5x5 grid using a shared Double-DQN policy and 3-phase curriculum | 94.8% success rate, 0 collisions across 500 trials |
-| [Pacman Capture the Flag](./pacman-pf) | Hybrid PDDL and Q-learning agent for competitive multi-agent Pac-Man | 100% win rate vs staff baseline, +4.95 avg winning margin |
+| [Pacman Pathfinding](./pacman-pf) | Hybrid PDDL and Q-learning agent for competitive multi-agent Pac-Man | 100% win rate vs staff baseline, +4.95 avg winning margin |
 | [Railway MAPF](./railway-mapf) | Multi-agent path finding for trains with dynamic malfunction replanning | 3 planners: greedy, time-space A*, prioritised planning |
 | [Movie Recommender](./movie-recommender-mf) | Collaborative filtering using Matrix Factorization | RMSE 0.92, MAE 0.73 on MovieLens 1M dataset |
 
