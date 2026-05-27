@@ -29,7 +29,7 @@ I'm a Computing Science graduate finishing my Master of Artificial Intelligence 
 
 ## Currently Building
 
-An early disease detection system for diabetes using explainable AI. The goal is not just a model that is accurate but one that is trustworthy, fair, and explainable enough to actually be useful in a real healthcare setting.
+Currently working on a new project in healthcare AI. Will share once it is ready. 👨🏻‍⚕️
 
 ---
 
