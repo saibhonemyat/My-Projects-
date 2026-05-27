@@ -4,7 +4,7 @@ I'm a Computing Science graduate finishing my Master of Artificial Intelligence 
 
 ---
 
-## Projects
+## AI-Projects🤖
 
 | Project | Description | Key Result |
 |---|---|---|
