@@ -1,6 +1,6 @@
 # Hi, I'm Sai Bhone Myat Naing
 
-I'm a Computing Science graduate finishing my Master of Artificial Intelligence at Monash University. I build real AI systems. I care about building things that actually work, not just things that look good on paper.
+I'm a Computing Science graduate finishing my Master of Artificial Intelligence at Monash University. I like to build real AI systems. I care about building things that actually work, not just things that look good on paper.
 
 ---
 
