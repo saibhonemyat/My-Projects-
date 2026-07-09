@@ -1,2 +1,2 @@
 [tool.vercel]
-entrypoint = "movie-recommender-mf.api.index:app"  
+entrypoint = "movie-recommender-mf.api.index:app" 
